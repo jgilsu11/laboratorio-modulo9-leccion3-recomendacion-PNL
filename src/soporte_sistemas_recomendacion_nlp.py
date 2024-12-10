@@ -7,52 +7,36 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def get_index_from_name(name,df):
+def get_index_from_name(name,columna,df):
     """
-    Obtiene el índice de la fila donde se encuentra el valor del nombre especificado.
+    Obtiene el índice de un DataFrame basado en un valor en una columna específica.
     
-    Parámetros:
-    -----------
-    name : str
-        El nombre que se busca en la columna 'name' del DataFrame.
-    df : pd.DataFrame
-        El DataFrame donde se buscará el nombre.
+    Args:
+        name (str): Valor buscado en la columna.
+        columna (str): Nombre de la columna donde buscar el valor.
+        df (pd.DataFrame): DataFrame de pandas.
     
-    Retorna:
-    --------
-    int
-        Índice de la fila que contiene el nombre especificado.
+    Returns:
+        int: Índice del DataFrame correspondiente al valor.
+    """
 
-    Lanza:
-    -------
-    ValueError:
-        Si el nombre no se encuentra en el DataFrame.
-    """
-    return df[df.name==name].index[0]
+    return df[df[columna]==name].index[0]
 
 
-def get_name_from_index(index,df):
+def get_name_from_index(index,df,columna):
     """
-    Obtiene el nombre correspondiente al índice especificado.
+    Obtiene el valor de una columna específica basado en el índice del DataFrame.
     
-    Parámetros:
-    -----------
-    index : int
-        El índice que se busca en el DataFrame.
-    df : pd.DataFrame
-        El DataFrame donde se buscará el índice.
+    Args:
+        index (int): Índice del DataFrame.
+        df (pd.DataFrame): DataFrame de pandas.
+        columna (str): Nombre de la columna desde la cual se quiere extraer el valor.
     
-    Retorna:
-    --------
-    str
-        Nombre correspondiente al índice especificado.
+    Returns:
+        str: Valor correspondiente al índice en la columna especificada.
+    """
 
-    Lanza:
-    -------
-    ValueError:
-        Si el índice no se encuentra en el DataFrame.
-    """
-    return df[df.index==index]["name"].values[0]
+    return df[df.index==index][columna].values[0]
 
 
 def plot(peli1, peli2, dataframe):
