@@ -5,7 +5,8 @@ import pandas as pd
 # Para visualización de datos
 # -----------------------------------------------------------------------
 import matplotlib.pyplot as plt
-
+from nltk.sentiment import SentimentIntensityAnalyzer
+import seaborn as sns
 
 def get_index_from_name(name,columna,df):
     """
@@ -105,3 +106,100 @@ def filter_data(df):
     df = df[df.movieId.isin(filtered_ratings_per_movie_df)]
     df = df[df.userId.isin(filtered_ratings_per_user_df)]
     return df
+
+
+
+
+
+
+
+class AnalisisSentimientos:
+    """
+    Clase para realizar análisis de sentimientos en un dataframe
+    y generar visualizaciones basadas en los resultados.
+    """
+    def __init__(self, dataframe, columna_texto):
+        """
+        Inicializa el analizador de sentimientos y prepara el dataframe.
+
+        Parameters:
+        ----------
+        dataframe : pd.DataFrame
+            DataFrame que contiene los datos.
+        columna_texto : str
+            Nombre de la columna que contiene los textos a analizar.
+        """
+        self.dataframe = dataframe.copy()
+        self.columna_texto = columna_texto
+        self.sia = SentimentIntensityAnalyzer()
+        self._preparar_datos()
+    
+    def _preparar_datos(self):
+        """
+        Aplica el análisis de sentimientos y separa las puntuaciones en columnas individuales.
+        """
+        self.dataframe['scores_sentimientos'] = self.dataframe[self.columna_texto].apply(self._analizar_texto)
+        self.dataframe['neg'] = self.dataframe['scores_sentimientos'].apply(lambda x: x['neg'])
+        self.dataframe['neu'] = self.dataframe['scores_sentimientos'].apply(lambda x: x['neu'])
+        self.dataframe['pos'] = self.dataframe['scores_sentimientos'].apply(lambda x: x['pos'])
+        self.dataframe['compound'] = self.dataframe['scores_sentimientos'].apply(lambda x: x['compound'])
+        self.dataframe.drop(columns=['scores_sentimientos'], inplace=True)
+    
+    def _analizar_texto(self, texto):
+        """
+        Analiza un texto y retorna las puntuaciones de sentimientos.
+
+        Parameters:
+        ----------
+        texto : str
+            Texto a analizar.
+
+        Returns:
+        -------
+        dict
+            Diccionario con las puntuaciones de negatividad, neutralidad, positividad y compound.
+        """
+        return self.sia.polarity_scores(texto)
+    
+    def graficar_distribucion_sentimientos(self):
+        """
+        Genera un gráfico de barras para visualizar la distribución de sentimientos (neg, neu, pos).
+        """
+        mean_scores = self.dataframe[['neg', 'neu', 'pos']].mean()
+        mean_scores.plot(kind='bar', figsize=(8, 5), title='Distribución Promedio de Sentimientos')
+        plt.xlabel('Tipo de Sentimiento')
+        plt.ylabel('Puntuación Promedio')
+        plt.xticks(rotation=0)
+        plt.show()
+
+    def graficar_distribucion_compound(self):
+        """
+        Genera un histograma para visualizar la distribución de las puntuaciones compound.
+        """
+        plt.figure(figsize=(8, 5))
+        sns.histplot(self.dataframe['compound'], bins=20, kde=True, color='blue')
+        plt.title('Distribución de Puntuaciones Compound')
+        plt.xlabel('Puntuación Compound')
+        plt.ylabel('Frecuencia')
+        plt.show()
+
+    def graficar_mapa_calor_sentimientos(self):
+        """
+        Genera un mapa de calor para visualizar las correlaciones entre las puntuaciones de sentimientos.
+        """
+        matriz_corr = self.dataframe[['neg', 'neu', 'pos', 'compound']].corr()
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(matriz_corr, annot=True, cmap='coolwarm', fmt=".2f")
+        plt.title('Mapa de Calor de Correlaciones de Sentimientos')
+        plt.show()
+
+    def obtener_resumen(self):
+        """
+        Retorna un resumen estadístico de las puntuaciones de sentimientos.
+
+        Returns:
+        -------
+        pd.DataFrame
+            Resumen estadístico (count, mean, std, min, max) de las puntuaciones.
+        """
+        return self.dataframe[['neg', 'neu', 'pos', 'compound']].describe()
